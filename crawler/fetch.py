@@ -44,7 +44,8 @@ def _block_reason(status, text):
 
 
 class Fetcher:
-    def __init__(self, log=None):
+    def __init__(self, log=None, source_limit=None):
+        self.source_limit = source_limit
         if not config.PROXY_URL:
             raise RuntimeError("Proxy not configured. Set PROXY_URL or "
                                "PROXY_HOST/PROXY_USERNAME/PROXY_PASSWORD.")
@@ -59,7 +60,9 @@ class Fetcher:
             timeout=config.REQUEST_TIMEOUT,
         )
 
-    def _check_budget(self):
+    def _check_budget(self, source):
+        if self.source_limit and self.log.count_for(source) >= self.source_limit:
+            raise BudgetExceeded(f"{source} request limit {self.source_limit} reached")
         if self.log.total >= config.MAX_REQUESTS:
             raise BudgetExceeded(f"request limit {config.MAX_REQUESTS} reached")
         if self.log.total_bytes >= config.MAX_MEGABYTES * 1_000_000:
@@ -69,7 +72,7 @@ class Fetcher:
         """Download one page. validate(text) -> True if the content is real."""
         last = FetchResult(url, None, "", False, False, False, "not attempted")
         for attempt in range(1, config.MAX_RETRIES + 2):
-            self._check_budget()
+            self._check_budget(source)
             if self.session is None:
                 self._new_session()
             start = time.time()

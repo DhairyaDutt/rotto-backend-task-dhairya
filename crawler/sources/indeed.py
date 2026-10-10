@@ -1,6 +1,7 @@
 import json
 import re
 from datetime import datetime, timezone
+from urllib.parse import quote
 
 from ..textutil import content_hash, html_to_text
 
@@ -98,3 +99,37 @@ def parse_job(html, expected_jk, card=None):
                                      sal_min, sal_max, sal_period, description),
     }
     return job, "ok"
+
+def discover(html):
+    """Search page -> {jobkey: {"createDate": ms}} from the embedded job cards.
+    Only the posted date is kept from each card (the rest is not needed)."""
+    cards = {}
+    m = re.search(r'window\.mosaic\.providerData\["mosaic-provider-jobcards"\]\s*=\s*(\{)', html)
+    if not m:
+        return cards
+    try:
+        obj, _ = json.JSONDecoder().raw_decode(html[m.start(1):])
+        results = obj["metaData"]["mosaicProviderJobCardsModel"]["results"]
+    except (ValueError, KeyError, TypeError):
+        return cards
+    for r in results:
+        jk = r.get("jobkey")
+        if jk and not r.get("expired"):
+            cards[jk] = {"createDate": r.get("createDate")}
+    return cards
+
+
+def next_page(html):
+    """Relative link to the next results page, or None on the last page."""
+    data = _initial_data(html)
+    try:
+        current = data.get("pageNum") or 1
+        for link in data["pageLinks"]:
+            if link.get("label") == current + 1 and link.get("href"):
+                href = link["href"]
+                if link.get("pp"):
+                    href += "&pp=" + quote(link["pp"], safe="")
+                return href
+    except (TypeError, KeyError, AttributeError):
+        pass
+    return None

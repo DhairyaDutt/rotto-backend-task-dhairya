@@ -33,6 +33,18 @@ class RequestLog:
     def total(self):
         return len(self.records)
 
+    def count_for(self, source):
+        return sum(1 for r in self.records if r["source"] == source)
+
+    def bytes_by_source(self):
+        out = {}
+        for r in self.records:
+            out[r["source"]] = out.get(r["source"], 0) + (r["bytes"] or 0)
+        return out
+
+    def requests_by_source(self):
+        return dict(Counter(r["source"] for r in self.records))
+
     @property
     def total_bytes(self):
         return sum(r["bytes"] or 0 for r in self.records)
