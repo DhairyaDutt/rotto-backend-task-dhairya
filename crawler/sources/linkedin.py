@@ -27,6 +27,26 @@ def _relative_date(text, fetched_at):
     return (fetched_at - int(m.group(1)) * UNITS[m.group(2)]).isoformat()
 
 
+_PERIOD_WORDS = {"yr": "year", "year": "year", "annum": "year", "hr": "hour",
+                 "hour": "hour", "day": "day", "week": "week", "wk": "week",
+                 "month": "month", "mo": "month"}
+
+
+def _salary(tree):
+    """Only when the page shows a pay element, e.g. '£50,000.00/yr - £60,000.00/yr'."""
+    node = tree.css_first("[class*='compensation__salary']")
+    text = _text(node)
+    if not text or "£" not in text:
+        return None, None, None
+    nums = [float(n.replace(",", "")) for n in re.findall(r"£\s?([\d,]+(?:\.\d+)?)", text)]
+    pm = re.search(r"/\s?(yr|year|hr|hour|day|week|wk|month|mo)\b|per\s+(annum|year|hour|day|week|month)",
+                   text, re.I)
+    if not nums or not pm:
+        return None, None, None
+    period = _PERIOD_WORDS[(pm.group(1) or pm.group(2)).lower()]
+    return min(nums), max(nums), period
+
+
 def _employment_type(tree):
     for item in tree.css("li.description__job-criteria-item"):
         head = _text(item.css_first("h3"))
@@ -78,6 +98,7 @@ def parse_job(html, expected_id, fetched_at=None, posted_date=None):
     url = m.group(0) if m else f"https://www.linkedin.com/jobs/view/{expected_id}"
 
     work_type = _employment_type(tree)
+    sal_min, sal_max, sal_period = _salary(tree)
     job = {
         "id": f"linkedin:{expected_id}",
         "source": "linkedin",
@@ -88,13 +109,13 @@ def parse_job(html, expected_id, fetched_at=None, posted_date=None):
         "company_logo_url": logo,
         "location": location,
         "work_type": work_type,
-        "salary_min": None,      # TODO: check a salaried job
-        "salary_max": None,
-        "salary_period": None,
+        "salary_min": sal_min,
+        "salary_max": sal_max,
+        "salary_period": sal_period,
         "posted_at": posted_at,
         "description": description,
         "content_hash": content_hash(title, company, location, work_type,
-                                     None, None, None, description),
+                                     sal_min, sal_max, sal_period, description),
     }
     return job, "ok"
 
