@@ -18,4 +18,4 @@ crawl: db setup
 
 # Run the offline lifecycle tests (no proxy or internet needed for the tests themselves)
 test: db setup
-	.venv/bin/python tests/run_tests.py
+	.venv/bin/python -m tests.run_tests
