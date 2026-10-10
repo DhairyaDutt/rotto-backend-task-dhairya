@@ -37,7 +37,12 @@ def _work_type(d):
 def _salary(d):
     s = d.get("jobSalary") or {}
     period = PERIODS.get(((s.get("type") or {}).get("name") or "").lower())
-    if not s.get("displaySalary") or period is None:
+    shown = s.get("displaySalary") or ""
+    hidden = any(v for k, v in s.items()
+                 if k.endswith("HideSalary") and v is True)
+    # Reed keeps a hidden internal range for "Competitive"/"Negotiable" ads;
+    # trust the numbers only when the page itself shows a figure.
+    if hidden or not any(ch.isdigit() for ch in shown) or period is None:
         return None, None, None
     return s.get("from"), s.get("to"), period
 
