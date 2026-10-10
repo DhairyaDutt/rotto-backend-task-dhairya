@@ -6,3 +6,5 @@ __pycache__/
 
 # Raw pages you save while experimenting (can get big)
 cache/
+scratch/
+logs/
