@@ -1,0 +1,532 @@
+{
+ "version": 1,
+ "description": "Our own edge cases, same format as lifecycle.json",
+ "runs": [
+  {
+   "name": "seed",
+   "observed_at": "2026-10-02T09:00:00Z",
+   "source": "reed",
+   "scope": "fixture-edge",
+   "discovery_complete": true,
+   "discovered_source_job_ids": [
+    "201",
+    "202",
+    "203"
+   ],
+   "details": [
+    {
+     "source": "reed",
+     "source_job_id": "201",
+     "url": "https://www.reed.co.uk/jobs/fixture/201",
+     "title": "Data Engineer 201",
+     "company": "Edge Case Ltd",
+     "company_logo_url": null,
+     "location": "Leeds, England",
+     "work_type": "full time",
+     "salary_min": 50000,
+     "salary_max": 70000,
+     "salary_period": "year",
+     "posted_at": "2026-10-02T08:00:00Z",
+     "description": "Synthetic vacancy 201 for lifecycle edge cases."
+    },
+    {
+     "source": "reed",
+     "source_job_id": "202",
+     "url": "https://www.reed.co.uk/jobs/fixture/202",
+     "title": "Data Engineer 202",
+     "company": "Edge Case Ltd",
+     "company_logo_url": null,
+     "location": "Leeds, England",
+     "work_type": "full time",
+     "salary_min": 50000,
+     "salary_max": 70000,
+     "salary_period": "year",
+     "posted_at": "2026-10-02T08:00:00Z",
+     "description": "Synthetic vacancy 202 for lifecycle edge cases."
+    },
+    {
+     "source": "reed",
+     "source_job_id": "203",
+     "url": "https://www.reed.co.uk/jobs/fixture/203",
+     "title": "Data Engineer 203",
+     "company": "Edge Case Ltd",
+     "company_logo_url": null,
+     "location": "Leeds, England",
+     "work_type": "full time",
+     "salary_min": 50000,
+     "salary_max": 70000,
+     "salary_period": "year",
+     "posted_at": "2026-10-02T08:00:00Z",
+     "description": "Synthetic vacancy 203 for lifecycle edge cases."
+    }
+   ],
+   "failed_detail_source_job_ids": [],
+   "confirmed_removed_source_job_ids": [],
+   "expected": {
+    "report": {
+     "jobs_new": 3,
+     "jobs_changed": 0,
+     "jobs_removed": 0
+    },
+    "rows": {
+     "reed:201": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T09:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 201",
+      "content_hash_equals_run": null
+     },
+     "reed:202": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T09:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 202",
+      "content_hash_equals_run": null
+     },
+     "reed:203": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T09:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 203",
+      "content_hash_equals_run": null
+     }
+    }
+   }
+  },
+  {
+   "name": "partial_crawl_no_removal",
+   "observed_at": "2026-10-02T10:00:00Z",
+   "source": "reed",
+   "scope": "fixture-edge",
+   "discovery_complete": false,
+   "discovered_source_job_ids": [
+    "201",
+    "202"
+   ],
+   "details": [],
+   "failed_detail_source_job_ids": [],
+   "confirmed_removed_source_job_ids": [],
+   "expected": {
+    "report": {
+     "jobs_new": 0,
+     "jobs_changed": 0,
+     "jobs_removed": 0
+    },
+    "rows": {
+     "reed:201": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T10:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 201",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:202": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T10:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 202",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:203": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T09:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 203",
+      "content_hash_equals_run": "seed"
+     }
+    }
+   }
+  },
+  {
+   "name": "failed_detail_keeps_data",
+   "observed_at": "2026-10-02T11:00:00Z",
+   "source": "reed",
+   "scope": "fixture-edge",
+   "discovery_complete": true,
+   "discovered_source_job_ids": [
+    "201",
+    "202",
+    "203",
+    "204"
+   ],
+   "details": [],
+   "failed_detail_source_job_ids": [
+    "202",
+    "204"
+   ],
+   "confirmed_removed_source_job_ids": [],
+   "expected": {
+    "report": {
+     "jobs_new": 0,
+     "jobs_changed": 0,
+     "jobs_removed": 0
+    },
+    "rows": {
+     "reed:201": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T11:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 201",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:202": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T11:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 202",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:203": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T11:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 203",
+      "content_hash_equals_run": "seed"
+     }
+    }
+   }
+  },
+  {
+   "name": "confirmed_removal",
+   "observed_at": "2026-10-02T12:00:00Z",
+   "source": "reed",
+   "scope": "fixture-edge",
+   "discovery_complete": true,
+   "discovered_source_job_ids": [
+    "201",
+    "202"
+   ],
+   "details": [],
+   "failed_detail_source_job_ids": [],
+   "confirmed_removed_source_job_ids": [
+    "203"
+   ],
+   "expected": {
+    "report": {
+     "jobs_new": 0,
+     "jobs_changed": 0,
+     "jobs_removed": 1
+    },
+    "rows": {
+     "reed:201": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T12:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 201",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:202": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T12:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 202",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:203": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T11:00:00Z",
+      "removed_at": "2026-10-02T12:00:00Z",
+      "title": "Data Engineer 203",
+      "content_hash_equals_run": "seed"
+     }
+    }
+   }
+  },
+  {
+   "name": "absent_stays_removed",
+   "observed_at": "2026-10-02T13:00:00Z",
+   "source": "reed",
+   "scope": "fixture-edge",
+   "discovery_complete": true,
+   "discovered_source_job_ids": [
+    "201"
+   ],
+   "details": [],
+   "failed_detail_source_job_ids": [],
+   "confirmed_removed_source_job_ids": [],
+   "expected": {
+    "report": {
+     "jobs_new": 0,
+     "jobs_changed": 0,
+     "jobs_removed": 0
+    },
+    "rows": {
+     "reed:201": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T13:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 201",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:202": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T12:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 202",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:203": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T11:00:00Z",
+      "removed_at": "2026-10-02T12:00:00Z",
+      "title": "Data Engineer 203",
+      "content_hash_equals_run": "seed"
+     }
+    }
+   }
+  },
+  {
+   "name": "reappears",
+   "observed_at": "2026-10-02T14:00:00Z",
+   "source": "reed",
+   "scope": "fixture-edge",
+   "discovery_complete": true,
+   "discovered_source_job_ids": [
+    "201",
+    "202",
+    "203"
+   ],
+   "details": [
+    {
+     "source": "reed",
+     "source_job_id": "203",
+     "url": "https://www.reed.co.uk/jobs/fixture/203",
+     "title": "Data Engineer 203",
+     "company": "Edge Case Ltd",
+     "company_logo_url": null,
+     "location": "Leeds, England",
+     "work_type": "full time",
+     "salary_min": 50000,
+     "salary_max": 70000,
+     "salary_period": "year",
+     "posted_at": "2026-10-02T08:00:00Z",
+     "description": "Synthetic vacancy 203 for lifecycle edge cases."
+    }
+   ],
+   "failed_detail_source_job_ids": [],
+   "confirmed_removed_source_job_ids": [],
+   "expected": {
+    "report": {
+     "jobs_new": 0,
+     "jobs_changed": 0,
+     "jobs_removed": 0
+    },
+    "rows": {
+     "reed:201": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T14:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 201",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:202": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T14:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 202",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:203": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T14:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 203",
+      "content_hash_equals_run": "seed"
+     }
+    }
+   }
+  },
+  {
+   "name": "content_change",
+   "observed_at": "2026-10-02T15:00:00Z",
+   "source": "reed",
+   "scope": "fixture-edge",
+   "discovery_complete": true,
+   "discovered_source_job_ids": [
+    "201",
+    "202",
+    "203"
+   ],
+   "details": [
+    {
+     "source": "reed",
+     "source_job_id": "201",
+     "url": "https://www.reed.co.uk/jobs/fixture/201",
+     "title": "Changed Data Engineer 201",
+     "company": "Edge Case Ltd",
+     "company_logo_url": null,
+     "location": "Leeds, England",
+     "work_type": "full time",
+     "salary_min": 50000,
+     "salary_max": 70000,
+     "salary_period": "year",
+     "posted_at": "2026-10-02T08:00:00Z",
+     "description": "Synthetic vacancy 201 for lifecycle edge cases."
+    }
+   ],
+   "failed_detail_source_job_ids": [],
+   "confirmed_removed_source_job_ids": [],
+   "expected": {
+    "report": {
+     "jobs_new": 0,
+     "jobs_changed": 1,
+     "jobs_removed": 0
+    },
+    "rows": {
+     "reed:201": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T15:00:00Z",
+      "removed_at": null,
+      "title": "Changed Data Engineer 201",
+      "content_hash_equals_run": null
+     },
+     "reed:202": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T15:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 202",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:203": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T15:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 203",
+      "content_hash_equals_run": "seed"
+     }
+    }
+   }
+  },
+  {
+   "name": "content_revert",
+   "observed_at": "2026-10-02T16:00:00Z",
+   "source": "reed",
+   "scope": "fixture-edge",
+   "discovery_complete": true,
+   "discovered_source_job_ids": [
+    "201",
+    "202",
+    "203"
+   ],
+   "details": [
+    {
+     "source": "reed",
+     "source_job_id": "201",
+     "url": "https://www.reed.co.uk/jobs/fixture/201",
+     "title": "Data Engineer 201",
+     "company": "Edge Case Ltd",
+     "company_logo_url": null,
+     "location": "Leeds, England",
+     "work_type": "full time",
+     "salary_min": 50000,
+     "salary_max": 70000,
+     "salary_period": "year",
+     "posted_at": "2026-10-02T08:00:00Z",
+     "description": "Synthetic vacancy 201 for lifecycle edge cases."
+    }
+   ],
+   "failed_detail_source_job_ids": [],
+   "confirmed_removed_source_job_ids": [],
+   "expected": {
+    "report": {
+     "jobs_new": 0,
+     "jobs_changed": 1,
+     "jobs_removed": 0
+    },
+    "rows": {
+     "reed:201": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T16:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 201",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:202": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T16:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 202",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:203": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T16:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 203",
+      "content_hash_equals_run": "seed"
+     }
+    }
+   }
+  },
+  {
+   "name": "removal_and_new_same_run",
+   "observed_at": "2026-10-02T17:00:00Z",
+   "source": "reed",
+   "scope": "fixture-edge",
+   "discovery_complete": true,
+   "discovered_source_job_ids": [
+    "201",
+    "203",
+    "205"
+   ],
+   "details": [
+    {
+     "source": "reed",
+     "source_job_id": "205",
+     "url": "https://www.reed.co.uk/jobs/fixture/205",
+     "title": "Data Engineer 205",
+     "company": "Edge Case Ltd",
+     "company_logo_url": null,
+     "location": "Leeds, England",
+     "work_type": "full time",
+     "salary_min": 50000,
+     "salary_max": 70000,
+     "salary_period": "year",
+     "posted_at": "2026-10-02T08:00:00Z",
+     "description": "Synthetic vacancy 205 for lifecycle edge cases."
+    }
+   ],
+   "failed_detail_source_job_ids": [],
+   "confirmed_removed_source_job_ids": [
+    "202"
+   ],
+   "expected": {
+    "report": {
+     "jobs_new": 1,
+     "jobs_changed": 0,
+     "jobs_removed": 1
+    },
+    "rows": {
+     "reed:201": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T17:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 201",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:202": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T16:00:00Z",
+      "removed_at": "2026-10-02T17:00:00Z",
+      "title": "Data Engineer 202",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:203": {
+      "first_seen_at": "2026-10-02T09:00:00Z",
+      "last_seen_at": "2026-10-02T17:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 203",
+      "content_hash_equals_run": "seed"
+     },
+     "reed:205": {
+      "first_seen_at": "2026-10-02T17:00:00Z",
+      "last_seen_at": "2026-10-02T17:00:00Z",
+      "removed_at": null,
+      "title": "Data Engineer 205",
+      "content_hash_equals_run": null
+     }
+    }
+   }
+  }
+ ]
+}
