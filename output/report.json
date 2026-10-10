@@ -1,32 +1,30 @@
 {
-  "started_at": "2026-10-10T21:34:41.774552+00:00",
-  "finished_at": "2026-10-10T21:41:13.588968+00:00",
-  "requests_total": 393,
-  "requests_blocked": 40,
+  "started_at": "2026-10-10T21:45:33.069900+00:00",
+  "finished_at": "2026-10-10T21:50:44.162115+00:00",
+  "requests_total": 294,
+  "requests_blocked": 36,
   "requests_by_status": {
-    "200": 353,
-    "429": 37,
-    "403": 2,
-    "401": 1
+    "200": 258,
+    "429": 36
   },
   "jobs_by_source": {
-    "linkedin": 856,
-    "reed": 429,
-    "indeed": 333
+    "linkedin": 965,
+    "reed": 436,
+    "indeed": 356
   },
-  "duplicates_linked": 94,
-  "jobs_new": 312,
+  "duplicates_linked": 106,
+  "jobs_new": 139,
   "jobs_removed": 0,
-  "jobs_changed": 0,
-  "estimated_cost_usd": 0.0929,
+  "jobs_changed": 6,
+  "estimated_cost_usd": 0.0617,
   "requests_by_source": {
-    "linkedin": 300,
-    "reed": 31,
-    "indeed": 62
+    "linkedin": 237,
+    "reed": 19,
+    "indeed": 38
   },
-  "bytes_unpacked": 96430224,
-  "bytes_proxy_estimate": 18578881,
-  "distinct_canonical_jobs": 1524,
+  "bytes_unpacked": 64077163,
+  "bytes_proxy_estimate": 12340699,
+  "distinct_canonical_jobs": 1651,
   "assumptions": {
     "usd_per_gb": 5.0,
     "compressed_over_unpacked": {
