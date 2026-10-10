@@ -199,6 +199,29 @@ def verify_stale(fetcher, conn, name, run, now):
             run["confirmed_removed_source_job_ids"].append(job_id)
 
 
+def refresh_pending(fetcher, conn, run, now):
+    """Known Reed jobs flagged for re-check (last_detail_checked_at is NULL) are
+    re-fetched even if this run's searches did not show them."""
+    have = {d["source_job_id"] for d in run["details"]}
+    rows = conn.execute(
+        """SELECT source_job_id, url FROM jobs
+           WHERE source = 'reed' AND removed_at IS NULL
+             AND last_detail_checked_at IS NULL LIMIT %s""", (MAX_VERIFY * 3,)).fetchall()
+    for row in rows:
+        job_id = row["source_job_id"]
+        if job_id in have:
+            continue
+        try:
+            r = fetcher.get("reed", "detail", row["url"],
+                            validate=lambda t, j=job_id: '"jobDetails"' in t and j in t)
+        except BudgetExceeded:
+            break
+        if r.ok:
+            job, state = reed.parse_job(r.text, job_id)
+            if state == "ok":
+                run["details"].append(job)
+
+
 CRAWLERS = {"linkedin": crawl_linkedin, "reed": crawl_reed, "indeed": crawl_indeed}
 
 
@@ -212,6 +235,8 @@ def main():
         now = datetime.now(timezone.utc)
         try:
             run = CRAWLERS[name](fetcher, known_jobs(conn, name), now)
+            if name == "reed":
+                refresh_pending(fetcher, conn, run, now)
             if name in ("linkedin", "reed"):
                 verify_stale(fetcher, conn, name, run, now)
         except Exception as e:   # one broken source must not stop the others
