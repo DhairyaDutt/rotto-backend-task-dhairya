@@ -83,7 +83,7 @@ def parse_job(html, expected_id):
         "salary_min": sal_min,
         "salary_max": sal_max,
         "salary_period": sal_period,
-        "posted_at": _dt(d.get("createdDate")),
+         "posted_at": _dt(d.get("displayDate") or d.get("createdDate")),
         "description": description,
         "content_hash": content_hash(title, company, location, work_type,
                                      sal_min, sal_max, sal_period, description),
