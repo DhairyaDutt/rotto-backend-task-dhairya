@@ -97,3 +97,17 @@ def parse_job(html, expected_id, fetched_at=None, posted_date=None):
                                      None, None, None, description),
     }
     return job, "ok"
+
+def discover(html):
+    """Search page -> {job_id: 'YYYY-MM-DD' or None}, read card by card,
+    so each date belongs to the same card as its job id."""
+    tree = HTMLParser(html)
+    found = {}
+    for card in tree.css("div.base-search-card"):
+        m = re.search(r"jobPosting:(\d+)", card.attributes.get("data-entity-urn") or "")
+        if not m:
+            continue
+        t = card.css_first("time")
+        date = (t.attributes.get("datetime") or "") if t else ""
+        found[m.group(1)] = date if re.fullmatch(r"\d{4}-\d{2}-\d{2}", date) else None
+    return found
