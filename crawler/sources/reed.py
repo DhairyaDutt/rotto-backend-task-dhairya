@@ -90,3 +90,10 @@ def parse_job(html, expected_id):
         "expiry_date": _dt(d.get("expiryDate")),
     }
     return job, "ok"
+
+def discover(html):
+    """Search page -> {job_id: path}. Company links have no number, so they are skipped."""
+    found = {}
+    for m in re.finditer(r'/jobs/([a-z0-9-]+)/(\d{6,})', html):
+        found.setdefault(m.group(2), f"/jobs/{m.group(1)}/{m.group(2)}")
+    return found
