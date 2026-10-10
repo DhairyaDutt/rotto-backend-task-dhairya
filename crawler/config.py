@@ -19,7 +19,7 @@ DATABASE_URL = os.environ.get(
     "DATABASE_URL", "postgresql://rotto:rotto@localhost:5432/rotto"
 )
 
-MAX_REQUESTS = int(os.environ.get("MAX_REQUESTS", "200"))
-MAX_MEGABYTES = int(os.environ.get("MAX_MEGABYTES", "500"))
+MAX_REQUESTS = int(os.environ.get("MAX_REQUESTS", "900"))
+MAX_MEGABYTES = int(os.environ.get("MAX_MEGABYTES", "1200"))
 MAX_RETRIES = int(os.environ.get("MAX_RETRIES", "3"))
 REQUEST_TIMEOUT = int(os.environ.get("REQUEST_TIMEOUT", "30"))

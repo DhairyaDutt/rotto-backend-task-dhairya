@@ -10,10 +10,22 @@ REFRESH_DAYS = int(os.environ.get("REFRESH_DAYS", "5"))
 SOURCES = [s.strip() for s in os.environ.get("SOURCES", "linkedin,reed,indeed").split(",") if s.strip()]
 STALE_DAYS = int(os.environ.get("STALE_DAYS", "3"))   # unseen this long -> verify
 MAX_VERIFY = int(os.environ.get("MAX_VERIFY", "20"))  # verification requests per source
-INDEED_QUERIES = [("sales", "United Kingdom")]
-INDEED_PAGES = int(os.environ.get("INDEED_PAGES", "2"))
-LINKEDIN_QUERIES = [("sales", "United Kingdom")]  # widened later
-REED_PAGES = int(os.environ.get("REED_PAGES", "2"))
+INDEED_QUERIES = QUERIES
+INDEED_PAGES = int(os.environ.get("INDEED_PAGES", "1"))
+KEYWORDS = ["sales", "engineer", "nurse", "driver", "accountant", "teacher",
+            "developer", "warehouse", "manager", "customer service",
+            "electrician", "chef"]
+LOCATIONS = ["United Kingdom", "London", "Manchester", "Birmingham", "Leeds",
+             "Glasgow", "Bristol", "Cardiff"]
+# keyword x location slices, interleaved so a small request budget still
+# covers many different searches instead of one deep one
+_pairs = [(KEYWORDS[i % len(KEYWORDS)], LOCATIONS[(i * 3 + i // len(KEYWORDS)) % len(LOCATIONS)])
+          for i in range(len(KEYWORDS) * len(LOCATIONS))]
+QUERIES = list(dict.fromkeys(_pairs))
+MAX_SEARCHES = int(os.environ.get("MAX_SEARCHES", "12"))  # search requests per source
+LINKEDIN_QUERIES = QUERIES
+REED_PAGES = int(os.environ.get("REED_PAGES", "1"))
+REED_QUERIES = QUERIES
 
 
 def known_jobs(conn, source):
@@ -45,7 +57,7 @@ def crawl_linkedin(fetcher, known, now):
     discovered, details, failed = {}, [], []
     complete = True
     try:
-        for keywords, location in LINKEDIN_QUERIES:
+        for keywords, location in LINKEDIN_QUERIES[:MAX_SEARCHES]:
             url = ("https://www.linkedin.com/jobs/search/?keywords="
                    f"{quote_plus(keywords)}&location={quote_plus(location)}")
             r = fetcher.get("linkedin", "search", url,
@@ -82,14 +94,16 @@ def crawl_reed(fetcher, known, now):
     discovered, details, failed = {}, [], []
     complete = True
     try:
-        for page in range(1, REED_PAGES + 1):
-            url = f"https://www.reed.co.uk/jobs?pageno={page}"
-            r = fetcher.get("reed", "search", url, validate=lambda t: "/jobs/" in t)
-            found = reed.discover(r.text) if r.ok else {}
-            if not found:
-                complete = False
-                continue
-            discovered.update(found)
+        for keywords, location in REED_QUERIES[:MAX_SEARCHES]:
+            for page in range(1, REED_PAGES + 1):
+                url = ("https://www.reed.co.uk/jobs?keywords="
+                       f"{quote_plus(keywords)}&location={quote_plus(location)}&pageno={page}")
+                r = fetcher.get("reed", "search", url, validate=lambda t: "/jobs/" in t)
+                found = reed.discover(r.text) if r.ok else {}
+                if not found:
+                    complete = False
+                    break
+                discovered.update(found)
 
         for job_id, path in discovered.items():
             if is_fresh(known, job_id, now):
@@ -117,7 +131,7 @@ def crawl_indeed(fetcher, known, now):
     page_of = {}   # jobkey -> search page it was found on (needed for detail)
     complete = True
     try:
-        for keywords, location in INDEED_QUERIES:
+        for keywords, location in INDEED_QUERIES[:MAX_SEARCHES]:
             url = ("https://uk.indeed.com/jobs?q="
                    f"{quote_plus(keywords)}&l={quote_plus(location)}")
             for _ in range(INDEED_PAGES):
