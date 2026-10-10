@@ -1,0 +1,38 @@
+{
+  "started_at": "2026-10-10T21:34:41.774552+00:00",
+  "finished_at": "2026-10-10T21:41:13.588968+00:00",
+  "requests_total": 393,
+  "requests_blocked": 40,
+  "requests_by_status": {
+    "200": 353,
+    "429": 37,
+    "403": 2,
+    "401": 1
+  },
+  "jobs_by_source": {
+    "linkedin": 856,
+    "reed": 429,
+    "indeed": 333
+  },
+  "duplicates_linked": 94,
+  "jobs_new": 312,
+  "jobs_removed": 0,
+  "jobs_changed": 0,
+  "estimated_cost_usd": 0.0929,
+  "requests_by_source": {
+    "linkedin": 300,
+    "reed": 31,
+    "indeed": 62
+  },
+  "bytes_unpacked": 96430224,
+  "bytes_proxy_estimate": 18578881,
+  "distinct_canonical_jobs": 1524,
+  "assumptions": {
+    "usd_per_gb": 5.0,
+    "compressed_over_unpacked": {
+      "reed": 0.4,
+      "linkedin": 0.12,
+      "indeed": 0.18
+    }
+  }
+}
