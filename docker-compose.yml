@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16            # use the official Postgres, version 16
+    restart: unless-stopped       # restart it automatically if it crashes
+    environment:
+      POSTGRES_USER: rotto        # database username
+      POSTGRES_PASSWORD: rotto    # database password (local only)
+      POSTGRES_DB: rotto          # name of the main database
+    ports:
+      - "5432:5432"               # lets your Python code reach it at localhost:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # saves data on disk so it survives restarts
+    healthcheck:                  # a "is the database ready yet?" test
+      test: ["CMD-SHELL", "pg_isready -U rotto -d rotto"]
+      interval: 2s                # ask every 2 seconds
+      timeout: 3s                 # give up on one check after 3 seconds
+      retries: 30                 # try up to 30 times before saying "failed"
+
+volumes:
+  pgdata:                         # the named storage space used above

@@ -1,0 +1,8 @@
+# Never upload these to GitHub
+.env
+.venv/
+__pycache__/
+*.pyc
+
+# Raw pages you save while experimenting (can get big)
+cache/
