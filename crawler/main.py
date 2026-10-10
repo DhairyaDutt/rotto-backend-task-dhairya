@@ -10,7 +10,6 @@ REFRESH_DAYS = int(os.environ.get("REFRESH_DAYS", "5"))
 SOURCES = [s.strip() for s in os.environ.get("SOURCES", "linkedin,reed,indeed").split(",") if s.strip()]
 STALE_DAYS = int(os.environ.get("STALE_DAYS", "3"))   # unseen this long -> verify
 MAX_VERIFY = int(os.environ.get("MAX_VERIFY", "20"))  # verification requests per source
-INDEED_QUERIES = QUERIES
 INDEED_PAGES = int(os.environ.get("INDEED_PAGES", "1"))
 KEYWORDS = ["sales", "engineer", "nurse", "driver", "accountant", "teacher",
             "developer", "warehouse", "manager", "customer service",
@@ -26,6 +25,7 @@ MAX_SEARCHES = int(os.environ.get("MAX_SEARCHES", "12"))  # search requests per 
 LINKEDIN_QUERIES = QUERIES
 REED_PAGES = int(os.environ.get("REED_PAGES", "1"))
 REED_QUERIES = QUERIES
+INDEED_QUERIES = QUERIES
 
 
 def known_jobs(conn, source):
