@@ -19,13 +19,13 @@ make test                # lifecycle fixture tests (no proxy needed)
 7. **Export**: `jobs.jsonl` (brief columns) and `report.json`, both written atomically.
 
 ## Bot protection
-- `curl_cffi` with Chrome TLS impersonation (the TLS fingerprint is what Cloudflare on Indeed checks) through the rotating UK residential proxy.
+- `curl_cffi` browser TLS impersonation through the rotating UK residential proxy. The TLS fingerprint is what Indeed's Cloudflare checks: Reed and LinkedIn accept the Chrome profile, but Indeed returned 403 for every Chrome profile from this proxy and accepted Safari's (after a homepage visit), found by probing, so Indeed uses `safari17_0` plus a warm-up request (counted in the report).
 - A response counts as blocked by **content**, not just status: 401/403/429/999, challenge-page titles, or missing expected markers. Blocked requests are retried with backoff on a fresh connection (new IP), up to `MAX_RETRIES`, and every attempt is logged (`logs/requests.jsonl`) and counted in the report.
 - Hard brakes: `MAX_REQUESTS` (900, split evenly per board), `MAX_MEGABYTES`, `REQUEST_TIMEOUT`. One broken board never stops the others.
 
 ## Tradeoffs
 - Depth is limited by request budget, not by parsing: more jobs = more detail requests (about 1 per job).
-- Indeed blocks about 1 in 3 first attempts; retries absorb it at the cost of extra requests.
+- Indeed's block rate varies by fingerprint and hour; the crawler gives up on Indeed searches after 2 blocked searches in a row rather than burning proxy requests, and never removes anything because of a block.
 - LinkedIn guest pages hide some fields, so `work_type` is only filled when the page states one exact value.
 - Dedupe is heuristic (precision over recall): a wrongly merged pair is worse than a missed one.
 - Sequential requests (about 2 s each, ~12 min for a full run) for simplicity and politeness.
