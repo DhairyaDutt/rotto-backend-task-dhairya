@@ -131,7 +131,11 @@ def crawl_indeed(fetcher, known, now):
     page_of = {}   # jobkey -> search page it was found on (needed for detail)
     complete = True
     try:
+        misses = 0   # consecutive blocked searches: stop early instead of burning requests
         for keywords, location in INDEED_QUERIES[:MAX_SEARCHES]:
+            if misses >= 2:
+                print("indeed: repeatedly blocked, giving up on searches for this run")
+                break
             url = ("https://uk.indeed.com/jobs?q="
                    f"{quote_plus(keywords)}&l={quote_plus(location)}")
             for _ in range(INDEED_PAGES):
@@ -140,7 +144,9 @@ def crawl_indeed(fetcher, known, now):
                 found = indeed.discover(r.text) if r.ok else {}
                 if not found:
                     complete = False
+                    misses += 1
                     break
+                misses = 0
                 for jk, card in found.items():
                     discovered.setdefault(jk, card)
                     page_of.setdefault(jk, url)
