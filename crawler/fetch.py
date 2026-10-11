@@ -14,6 +14,12 @@ BLOCK_TITLE_WORDS = ("blocked", "security check", "just a moment",
                      "authenticating", "access denied", "verify you")
 
 
+# Indeed blocks the Chrome TLS fingerprint from this proxy but accepts Safari's,
+# especially after a homepage visit first (found by probing; see NOTES.md).
+IMPERSONATE = {"indeed": "safari17_0"}
+WARMUP = {"indeed": "https://uk.indeed.com/"}
+
+
 class BudgetExceeded(Exception):
     """Raised when the request or byte limit is reached."""
 
@@ -51,14 +57,28 @@ class Fetcher:
                                "PROXY_HOST/PROXY_USERNAME/PROXY_PASSWORD.")
         self.log = log or RequestLog()
         self.session = None
+        self.session_source = None
 
-    def _new_session(self):
+    def _new_session(self, source):
         proxy = config.PROXY_URL
+        self.session_source = source
         self.session = requests.Session(
-            impersonate="chrome",
+            impersonate=IMPERSONATE.get(source, "chrome"),
             proxies={"http": proxy, "https": proxy},
             timeout=config.REQUEST_TIMEOUT,
         )
+        home = WARMUP.get(source)
+        if home:   # visit the homepage first, like a real browser (counted + logged)
+            start = time.time()
+            try:
+                r = self.session.get(home)
+                bad = r.status_code in BLOCK_STATUSES
+                self.log.record(source, "warmup", home, 1, r.status_code,
+                                len(r.content), time.time() - start, bad,
+                                f"status {r.status_code}" if bad else None)
+            except Exception as e:
+                self.log.record(source, "warmup", home, 1, None, 0,
+                                time.time() - start, False, f"error: {type(e).__name__}")
 
     def _check_budget(self, source):
         if self.source_limit and self.log.count_for(source) >= self.source_limit:
@@ -73,8 +93,8 @@ class Fetcher:
         last = FetchResult(url, None, "", False, False, False, "not attempted")
         for attempt in range(1, config.MAX_RETRIES + 2):
             self._check_budget(source)
-            if self.session is None:
-                self._new_session()
+            if self.session is None or self.session_source != source:
+                self._new_session(source)
             start = time.time()
             try:
                 r = self.session.get(url, headers=headers)
