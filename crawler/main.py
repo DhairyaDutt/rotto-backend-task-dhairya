@@ -222,10 +222,19 @@ def refresh_pending(fetcher, conn, run, now):
                             validate=lambda t, j=job_id: '"jobDetails"' in t and j in t)
         except BudgetExceeded:
             break
-        if r.ok:
+        if r.gone:   # the board says 404/410: confirm once more, then it is removed
+            try:
+                again = fetcher.get("reed", "detail", row["url"])
+            except BudgetExceeded:
+                break
+            if again.gone:
+                run["confirmed_removed_source_job_ids"].append(job_id)
+        elif r.ok:
             job, state = reed.parse_job(r.text, job_id)
             if state == "ok":
                 run["details"].append(job)
+            elif state == "expired":
+                run["confirmed_removed_source_job_ids"].append(job_id)
 
 
 CRAWLERS = {"linkedin": crawl_linkedin, "reed": crawl_reed, "indeed": crawl_indeed}
