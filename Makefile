@@ -1,7 +1,7 @@
 -include .env
 export
 
-.PHONY: db setup crawl test
+.PHONY: db setup crawl test audit
 
 # Start the database and WAIT until it reports "healthy"
 db:
@@ -19,3 +19,7 @@ crawl: db setup
 # Run the offline lifecycle tests (no proxy or internet needed for the tests themselves)
 test: db setup
 	.venv/bin/python -m tests.run_tests
+
+# Offline check of output/jobs.jsonl against the brief's validity rules (no proxy)
+audit:
+	python3 tools/audit.py

@@ -38,9 +38,20 @@ def _salary(info):
     if not info or info.get("salaryCurrency") != "GBP":
         return None, None, None
     period = SALARY_PERIODS.get(info.get("salaryType"))
-    if period is None or info.get("salaryMin") is None:
+    if period is None:
         return None, None, None
-    return info["salaryMin"], info.get("salaryMax") or info["salaryMin"], period
+    lo, hi = info.get("salaryMin"), info.get("salaryMax")
+    # Indeed uses -1 / 0 as "not given": "up to 50000" arrives as min 0, max 50000;
+    # "from 27000" arrives as min 27000, max -1.
+    lo = lo if lo is not None and lo > 0 else None
+    hi = hi if hi is not None and hi > 0 else None
+    if lo is None and hi is None:
+        return None, None, None
+    if lo is not None and hi is not None and hi < lo:
+        hi = lo
+    if hi is None:
+        hi = lo            # a single stated figure: min = max (as on Reed)
+    return lo, hi, period
 
 
 def _posted_at(card):

@@ -90,6 +90,7 @@ def is_duplicate(x, y):
 class _UnionFind:
     def __init__(self):
         self.parent = {}
+        self.srcs = {}
 
     def find(self, x):
         self.parent.setdefault(x, x)
@@ -102,6 +103,19 @@ class _UnionFind:
         ra, rb = self.find(a), self.find(b)
         if ra != rb:
             self.parent[max(ra, rb)] = min(ra, rb)
+
+    def sources(self, root):
+        return self.srcs.setdefault(root, {root.split(":", 1)[0]})
+
+    def union_cross_board(self, a, b):
+        """Join only if the two groups have no board in common: the same employer
+        posting one role in several places on ONE board is several listings."""
+        ra, rb = self.find(a), self.find(b)
+        if ra == rb or (self.sources(ra) & self.sources(rb)):
+            return
+        merged = self.sources(ra) | self.sources(rb)
+        self.union(ra, rb)
+        self.srcs[self.find(ra)] = merged
 
 
 def block_key(row):
@@ -136,14 +150,14 @@ def cluster(rows, descriptions):
             }
         # a hidden-company block must also match very closely on text
         strict = key[0] == "t"
-        ids = [r["id"] for r in members]
+        ids = sorted(r["id"] for r in members)   # same order every run
         for i in range(len(ids)):
             for j in range(i + 1, len(ids)):
                 x, y = feats[ids[i]], feats[ids[j]]
                 if strict and containment(x["shingles"], y["shingles"]) < 0.85:
                     continue
                 if is_duplicate(x, y):
-                    uf.union(ids[i], ids[j])
+                    uf.union_cross_board(ids[i], ids[j])
 
     groups = defaultdict(list)
     for r in rows:
