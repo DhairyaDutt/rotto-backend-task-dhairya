@@ -1,160 +1,41 @@
 # UK Jobs Crawler
 
-A Python crawler that collects UK job listings from Reed, LinkedIn guest pages,
-and Indeed UK. It stores listings in PostgreSQL, updates them on later runs,
-links likely duplicates, tracks confirmed removals, and exports JSON files.
+Crawls UK jobs from Reed, LinkedIn (guest pages) and Indeed UK into Postgres, links cross-board duplicates, tracks confirmed removals, and exports `output/jobs.jsonl` + `output/report.json`.
 
-## What you need
-
-- Python 3
-- Docker with Docker Compose
-- Internet access and valid proxy credentials to run a live crawl
-
-The fixture tests do not need proxy credentials or internet access, but they do
-need the local PostgreSQL container.
-
-## Get started
-
-1. Copy the example settings file:
-
-   ```sh
-   cp .env.example .env
-   ```
-
-2. Edit `.env` and replace the proxy username and password with the credentials
-   from your assessment brief. Keep `.env` private; do not commit proxy
-   credentials.
-
-3. Run the offline lifecycle tests:
-
-   ```sh
-   make test
-   ```
-
-   This starts PostgreSQL and installs the Python dependencies if needed. The
-   tests use the separate `rotto_test` database; each test run drops and
-   recreates that database. They do not make proxy requests.
-
-4. Run the live crawler:
-
-   ```sh
-   make crawl
-   ```
-
-   This starts PostgreSQL, installs dependencies if needed, and runs the
-   crawler. Live crawling requires working proxy credentials in `.env`.
-
-To replay a different fixture in the same format as the supplied lifecycle
-fixture, run:
+## Run it
 
 ```sh
-FIXTURE_PATH=tests/fixtures/edge_cases.json make test
+cp .env.example .env     # add the proxy username/password from the brief (.env is gitignored)
+make test                # offline lifecycle test, no proxy needed (uses a separate rotto_test DB)
+make crawl               # live, incremental and idempotent: re-running updates, never duplicates
+make audit               # offline check of output/jobs.jsonl (schema, salaries, dedupe sanity)
+FIXTURE_PATH=tests/fixtures/edge_cases.json make test   # replay any fixture in the same format
 ```
 
-## What a crawl does
+Needs Python 3 and Docker (Postgres runs via Docker Compose). Logs: `logs/requests.jsonl` (every request: status, bytes, seconds, blocked/reason).
 
-For each configured job board, the crawler:
+## How it works
 
-1. Searches a limited set of keyword-and-location combinations.
-2. Finds listing IDs and fetches details for new listings or listings due for
-   refresh.
-3. Parses each site's page into a common job record.
-4. Saves new or changed records in a database transaction.
-5. Checks some older listings for removal evidence where supported.
+1. **Search** a bounded set of keyword × location queries per board; **fetch details** only for new jobs or ones older than `REFRESH_DAYS` (5).
+2. **Store** in one transaction per board: upsert details, mark seen/revive, then apply removals. `content_hash` ignores dates, so unchanged jobs are not rewritten.
+3. **Removal is evidence-based.** Absence from search never removes a job. Unseen for `STALE_DAYS` (3) → checked directly (max `MAX_VERIFY` = 20 per run). Removed only on Reed "expired", or a 404/410 confirmed by a second request. Failed or blocked requests never remove. Indeed gives no reliable "gone" signal, so it is never removed. A removed job that reappears is revived.
+4. **Dedupe** links copies across boards with a shared `canonical_job_id`; nothing is deleted. Matching: same company, similar title, compatible location, overlapping description. Same-board jobs are never merged (repeat postings are distinct jobs). Canonical IDs are voted so groups stay stable between runs. It favours missing a duplicate over wrongly merging two jobs.
 
-Once the boards have been processed, likely duplicate listings are linked and
-the output files are written.
+## Bot protection: what worked and what didn't
 
-### Refreshes and removals
+- Requests use `curl_cffi` TLS impersonation through the UK residential proxy, with bounded retries and backoff on a fresh session. Blocks are detected by status (401/403/429/999) and challenge-page content, then logged.
+- Reed and LinkedIn work with a Chrome profile. **Indeed returned 403 for every Chrome/Edge profile I tried** (chrome, chrome120, chrome124, edge101). A Safari profile plus a homepage warm-up works, so that is what Indeed uses.
+- If Indeed blocks twice in a row the crawler stops that board and carries on with the others; one failing board never aborts the run.
 
-- A job's details are fetched again after `REFRESH_DAYS` (5 by default) since
-  its last detail check. Recently checked details are skipped.
-- A live job not seen in search for `STALE_DAYS` (3 by default) can be checked
-  directly, up to `MAX_VERIFY` (20) per supported board per run.
-- A job is not removed just because it was absent from search results or a
-  request failed. Removal requires confirmation from the job board. Reed and
-  LinkedIn are checked for removals; Indeed is not, because it does not provide
-  a reliable "job is gone" signal.
-- A removed job found again is marked live.
+## Limits and cost
 
-## Duplicate linking
+`MAX_REQUESTS` (900 default, split per board), `MAX_MEGABYTES` (1200), `MAX_RETRIES` (3), `REQUEST_TIMEOUT` (30 s). The byte cap counts decompressed bodies, not the proxy's real billing.
 
-The crawler does not delete duplicate listings. It groups likely copies by
-assigning them the same `canonical_job_id`, while retaining each original
-listing and its source.
+**Estimated cost: about $0.32 per 1,000 pages** (~63 KB/page through the proxy at $5/GB). This is an estimate from per-board compression ratios, not a measured proxy figure; `report.json` shows the same estimate and the provider dashboard is the source of truth.
 
-Matching considers normalized company names, similar titles, compatible
-locations, and overlapping description text. Matches are joined into groups;
-existing canonical IDs are preferred to keep groups stable across runs. This
-is heuristic matching, so it favors avoiding incorrect merges over finding
-every possible duplicate.
+## Trade-offs
 
-## Proxy use and request limits
-
-The crawler routes requests through the configured proxy and has safety limits:
-
-- `MAX_REQUESTS` (900 in `.env.example`), split across configured sources.
-- `MAX_MEGABYTES` (1200 in `.env.example`), a cap on response-body bytes read
-  by the crawler.
-- `REQUEST_TIMEOUT` (30 seconds) and `MAX_RETRIES` (3).
-
-Retries and the Indeed homepage warm-up count toward request use. Indeed uses a
-Safari browser profile and a homepage warm-up because that worked more reliably
-than the Chrome profile in the tested setup. Blocked responses and unexpected
-page content are logged and retried with backoff. If one board fails, the
-crawler reports it and continues with the others.
-
-The byte cap is **not** a live measurement of the proxy provider's 10 GB quota.
-The crawler sees response-body sizes, while proxy billing may count compressed
-traffic and other bytes. `report.json` therefore includes a proxy-traffic
-estimate based on per-board compression assumptions and the configured
-`PROXY_USD_PER_GB` price. Check the provider dashboard for actual quota usage.
-
-## Settings
-
-Values in `.env` override the defaults. The main crawl settings in
-`.env.example` are:
-
-| Setting | Example value | What it controls |
-| --- | ---: | --- |
-| `SOURCES` | `linkedin,reed,indeed` | Which boards to crawl |
-| `MAX_SEARCHES` | `12` | Search combinations per board |
-| `REED_PAGES` | `2` | Result pages per Reed search |
-| `INDEED_PAGES` | `2` | Result pages per Indeed search |
-| `REFRESH_DAYS` | `5` | Minimum age of job details before refreshing |
-| `STALE_DAYS` | `3` | How long unseen jobs wait before a verification check |
-| `MAX_VERIFY` | `20` | Verification candidates per supported board per run |
-| `MAX_REQUESTS` | `900` | Overall request safety limit |
-| `MAX_MEGABYTES` | `1200` | Response-body byte safety limit, in MB |
-
-The keyword and location lists are defined in `crawler/main.py`. The crawler
-interleaves their combinations and only uses the first `MAX_SEARCHES` per board
-in each run, keeping request use bounded.
-
-## Output files
-
-The crawler writes:
-
-- `output/jobs.jsonl` — one JSON object per stored listing, including its source,
-  job details, timestamps, removal status, and canonical ID.
-- `output/report.json` — run times, request counts and statuses, job counts,
-  duplicate-link count, and estimated proxy bytes and cost.
-- `logs/requests.jsonl` — individual request attempts, including status,
-  response size, duration, and failure or block reason.
-
-The output files are replaced atomically so an interrupted write does not leave
-a partially written file.
-
-## Implementation notes and trade-offs
-
-- Reed details are parsed from page JSON; LinkedIn from guest job-posting HTML;
-  Indeed from embedded page JSON. Indeed detail requests are checked against the
-  expected job key.
-- LinkedIn guest pages can omit fields, so `work_type` is only set when the
-  page states one exact value.
-- Requests are sequential, which is simpler and more polite but makes a full
-  run slower. Actual duration and coverage vary with results, retries, and
-  blocking.
-- Search depth is limited by the request budget. New or stale jobs require
-  detail requests, so the number of jobs found affects how much of the budget
-  remains for later work.
+- Sequential requests (~2 s each): simple and polite, but a large run takes hours. Coverage is bounded by the request budget.
+- LinkedIn guest pages often omit salary and work type (`work_type` is set only when stated exactly). Indeed `work_type` and logo fill rates are lower for the same reason (source limits, not parser bugs).
+- Indeed salaries use sentinels for missing bounds (-1 / 0); these are normalised to null.
+- Dedupe is heuristic and cross-board only.
