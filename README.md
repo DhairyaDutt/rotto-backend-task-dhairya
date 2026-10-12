@@ -31,7 +31,7 @@ Needs Python 3 and Docker (Postgres runs via Docker Compose). Logs: `logs/reques
 
 `MAX_REQUESTS` (900 default, split per board), `MAX_MEGABYTES` (1200), `MAX_RETRIES` (3), `REQUEST_TIMEOUT` (30 s). The byte cap counts decompressed bodies, not the proxy's real billing.
 
-**Estimated cost: about $0.32 per 1,000 pages** (~63 KB/page through the proxy at $5/GB). This is an estimate from per-board compression ratios, not a measured proxy figure; `report.json` shows the same estimate and the provider dashboard is the source of truth.
+**Estimated cost: roughly $0.30 to $0.70 per 1,000 requests**, depending on the mix (search pages are heavier than job pages). The committed `report.json` run was 127 requests, 16.7 MB estimated through the proxy, $0.08 at $5/GB, which is about $0.66 per 1,000. Over my whole development history (about 2,700 requests) the estimate was about $0.32 per 1,000. These are estimates from per-board compression ratios, not measured proxy figures; the provider dashboard is the source of truth.
 
 ## Trade-offs
 
