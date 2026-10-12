@@ -1,20 +1,20 @@
 # Recon and build notes
 
-## Status
+> These are my recon and build notes, written while I explored each board. Where a note
+> below disagrees with README.md, the README and the code are current (for example,
+> Indeed now uses a Safari profile with a homepage warm-up, because every Chrome
+> profile returned 403 later on).
 
-| Board | List | Detail | Fields | Dead job | Notes |
-|---|---|---|---|---|---|
-| Reed | Done | Done | Done | Done (410) | No blocking seen. Parser written, test pending |
-| LinkedIn | Done | Done | Done | Done (404) | Salary on a salaried job still to check |
-| Indeed | Done | Done (via vjk) | Mostly done | Not tested | Works with Chrome fingerprint. About 80% success on 5 requests |
+## Status (final)
 
-| Build phase | Status |
-|---|---|
-| 0 Setup | Done |
-| 1 Recon | Done |
-| 2 Fetch layer (config, request log, fetch) | Done, tested on 4 requests, committed |
-| 3 Parsers | Reed written (untested), LinkedIn and Indeed to do |
-| 4 Store and lifecycle, 5 make test, 6 Dedupe, 7 Scale, 8 Deliverables | To do |
+| Board | Search | Detail | Dead-job signal | Notes |
+|---|---|---|---|---|
+| Reed | Done | Done | 410 / expired flag, confirmed twice | Hidden placeholder salary ignored |
+| LinkedIn | Done | Done | 404, confirmed twice | Salary often absent on guest pages |
+| Indeed | Done | Done (via vjk) | None reliable, so Indeed jobs are never removed | Safari profile + warm-up; -1 / 0 salary sentinels become null |
+
+All build phases are done: fetch layer, parsers, store and lifecycle, `make test`,
+dedupe, scale-up, `make audit`, and the committed `output/` files.
 
 ## Working rules
 
@@ -161,7 +161,7 @@
 - Removal needs explicit evidence (404, 410, isLive false, isJobExpired true), confirmed by a second request on a fresh IP.
 - Never removal evidence: 401, 403, 429, 5xx, timeouts, challenge or login pages, absence from search results, job age.
 - fetch.py returns 404 and 410 as "gone" without retrying. The confirmation and the removed_at decision belong in the store code.
-- Still to verify: a job that was live and later expired, not just a never-existing ID.
+- Verified later: 16 Reed jobs that had been live were found 404 and removed through this rule.
 
 ---
 
@@ -171,16 +171,14 @@
 - crawler/requestlog.py: one JSONL line per attempt (source, kind, url, attempt, status, bytes, seconds, blocked, reason). Feeds report.json.
 - crawler/fetch.py: Fetcher.get(source, kind, url, validate). Chrome fingerprint, retries with backoff and jitter, new session per retry, block detection by status, title and the board's validate check, request and byte limits before every attempt.
 - Test: 4 requests (Reed job, LinkedIn job, LinkedIn dead job, Indeed search), 0 blocked, 1.5 MB unpacked.
-- Retry path not yet exercised (nothing failed). Test it by forcing a failure.
+- Retry path: exercised later during the full crawls (blocked requests are retried with backoff).
 - Byte limits use the unpacked size, so they overstate real proxy usage (safe direction).
 
 ---
 
-## Open items
+## Open items (known limits, not bugs)
 
-- Test the Reed parser on cache/reed_job.html and verify the four unverified points.
-- Write the LinkedIn and Indeed parsers.
-- Check a LinkedIn job with a salary.
-- Indeed: dead-job signal, warm-up hypothesis, salary currency.
-- Pick final default limits for the graders' make crawl once real cost is known.
-- Move the useful parts of these notes into the one-page README at the end.
+- Indeed dead jobs: no reliable signal found, so they are never auto-removed.
+- Dedupe recall is not measured; thresholds are strict to avoid wrong merges.
+- Proxy cost is an estimate from compression ratios, not a measured bill.
+- Requests are sequential; a larger crawl would need parallel workers.
